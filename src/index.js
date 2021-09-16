@@ -5,6 +5,9 @@ import { Provider } from "react-redux";
 import ReduxThunk from "redux-thunk";
 import { composeWithDevTools } from "redux-devtools-extension";
 import rootReducer, { history } from "redux/configureStore";
+import { ThemeProvider } from "styled-components";
+import GlobalStyles from "styles/GlobalStyles";
+import Mixin from "styles/Mixin";
 import App from "App";
 
 const store = createStore(
@@ -14,7 +17,10 @@ const store = createStore(
 
 ReactDOM.render(
   <Provider store={store}>
-    <App />
+    <ThemeProvider theme={{ ...Mixin }}>
+      <GlobalStyles />
+      <App />
+    </ThemeProvider>
   </Provider>,
   document.getElementById("root")
 );
