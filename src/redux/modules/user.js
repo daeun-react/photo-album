@@ -48,6 +48,25 @@ const logoutFB = () => {
   };
 };
 
+const loginCheckFB = () => {
+  return function (dispatch, getState, { history }) {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        dispatch(
+          loginSuccess({
+            user_name: user.displayName,
+            user_profile: user.photoURL,
+            id: user.email,
+            uid: user.uid,
+          })
+        );
+      } else {
+        dispatch(logOut());
+      }
+    });
+  };
+};
+
 export const signupFB = (id, pwd, user_name) => {
   return function (dispatch, getState, { history }) {
     auth
@@ -107,6 +126,7 @@ export default handleActions(
 const actionCreators = {
   loginFB,
   logoutFB,
+  loginCheckFB,
   signupFB,
 };
 
