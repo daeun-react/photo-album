@@ -1,15 +1,20 @@
-import firebase from "firebase/compat/app";
-import { produce } from "immer";
 import { createAction, handleActions } from "redux-actions";
+import { produce } from "immer";
+import gravatar from "gravatar";
+import firebase from "firebase/compat/app";
 import { auth } from "firebase";
 
 const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 const LOGIN_ERROR = "LOGIN_ERROR";
 const LOG_OUT = "LOG_OUT";
+const SIGNUP_SUCCESS = "SIGNUP_SUCCESS";
+const SIGNUP_ERROR = "SIGNUP_ERROR";
 
 const loginSuccess = createAction(LOGIN_SUCCESS, (user) => ({ user }));
 const loginError = createAction(LOGIN_ERROR);
 const logOut = createAction(LOG_OUT);
+const signupSuccess = createAction(SIGNUP_SUCCESS);
+const signupError = createAction(SIGNUP_ERROR);
 
 const loginFB = (id, pwd, signup = false) => {
   return function (dispatch, getState, { history }) {
@@ -43,10 +48,34 @@ const logoutFB = () => {
   };
 };
 
+export const signupFB = (id, pwd, user_name) => {
+  return function (dispatch, getState, { history }) {
+    auth
+      .createUserWithEmailAndPassword(id, pwd)
+      .then((user) => {
+        auth.currentUser
+          .updateProfile({
+            displayName: user_name,
+            photoURL: gravatar.url(id, { s: "24px", d: "retro" }),
+          })
+          .then(() => {
+            dispatch(loginFB(id, pwd, true));
+          })
+          .catch((err) => console.log(err));
+      })
+      .catch((error) => {
+        if (error.code.indexOf("auth/email-already-in-use") > -1) {
+          dispatch(signupError());
+        }
+      });
+  };
+};
+
 const initialState = {
   user: null,
   is_login: false,
   login_error: false,
+  signup_error: false,
 };
 
 export default handleActions(
@@ -67,6 +96,10 @@ export default handleActions(
         draft.user = null;
         draft.is_login = false;
       }),
+    [SIGNUP_ERROR]: (state, action) =>
+      produce(state, (draft) => {
+        draft.signup_error = true;
+      }),
   },
   initialState
 );
@@ -74,6 +107,7 @@ export default handleActions(
 const actionCreators = {
   loginFB,
   logoutFB,
+  signupFB,
 };
 
 export { actionCreators };
