@@ -1,6 +1,6 @@
-import { connectRouter } from "connected-react-router";
-import { createBrowserHistory } from "history";
 import { combineReducers } from "redux";
+import { createBrowserHistory } from "history";
+import { connectRouter } from "connected-react-router";
 
 export const history = createBrowserHistory();
 
