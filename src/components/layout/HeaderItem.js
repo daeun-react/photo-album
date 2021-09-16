@@ -1,60 +1,92 @@
 import React from "react";
-import { useSelector } from "react-redux";
 import styled, { css } from "styled-components";
+import { useSelector, useDispatch } from "react-redux";
+import { actionCreators as userActions } from "redux/modules/user";
 import { history } from "redux/configureStore";
 import { ROUTES } from "utils/constants";
+import { ReactComponent as Bell } from "assets/bell.svg";
+import { ReactComponent as Add } from "assets/add.svg";
+import { ReactComponent as Logout } from "assets/logout.svg";
 
 function HeaderItem() {
-  const { pathname } = useSelector((state) => state.router.location);
   const { LOGIN, SIGNUP } = ROUTES;
+
+  const _session_key = `firebase:authUser:${process.env.REACT_APP_API_KEY}:[DEFAULT]`;
+  const is_session = sessionStorage.getItem(_session_key) ? true : false;
+
+  const dispatch = useDispatch();
+  const { is_login, user } = useSelector((state) => state.user);
+  const { pathname } = useSelector((state) => state.router.location);
 
   const historyChange = (url) => {
     history.push(url);
   };
 
+  const handleLogout = () => {
+    window.confirm("정말 로그아웃 하시겠습니까?") && dispatch(userActions.logoutFB());
+  };
+
+  if (is_session && is_login) {
+    return (
+      <HeaderItemWrapper login={true}>
+        <li onClick={() => historyChange("/wrmypageite")}>
+          <ProfileImage>{user && <img src={user.user_profile} alt="user profile" />}</ProfileImage>
+        </li>
+        <li>
+          <Bell />
+        </li>
+        <li onClick={() => historyChange("/write")}>
+          <Add />
+        </li>
+        <li onClick={handleLogout}>
+          <Logout />
+        </li>
+      </HeaderItemWrapper>
+    );
+  }
+
   return (
     <HeaderItemWrapper login={false}>
-      <ul>
-        <li>
-          <Button isCurrentPath={pathname === LOGIN} onClick={() => historyChange(LOGIN)}>
-            로그인
-          </Button>
-        </li>
-        <li>
-          <Button isCurrentPath={pathname === SIGNUP} onClick={() => historyChange(SIGNUP)}>
-            회원가입
-          </Button>
-        </li>
-      </ul>
+      <li>
+        <Button isCurrentPath={pathname === LOGIN} onClick={() => historyChange(LOGIN)}>
+          로그인
+        </Button>
+      </li>
+      <li>
+        <Button isCurrentPath={pathname === SIGNUP} onClick={() => historyChange(SIGNUP)}>
+          회원가입
+        </Button>
+      </li>
     </HeaderItemWrapper>
   );
 }
 
 export default HeaderItem;
 
-const HeaderItemWrapper = styled.div`
+const HeaderItemWrapper = styled.ul`
   ${({ theme }) => theme.flexSet()};
 
-  ul {
-    display: flex;
-  }
-
-  ul li {
-    ${({ theme }) => theme.flexSet()};
-    padding-left: ${({ login }) => (login ? "20px" : "8px")};
-  }
-
-  img {
-    width: 28px;
-    height: 28px;
-    padding: 2px;
-    border: 2px solid #333333;
-    border-radius: 100%;
+  li + li {
+    padding-left: 16px;
   }
 
   svg {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
+  }
+`;
+
+const ProfileImage = styled.div`
+  width: 26px;
+  height: 26px;
+  border: 2.5px solid #333333;
+  border-radius: 50%;
+
+  img {
+    width: 100%;
+    height: 100%;
+    padding: 1px;
+    border-radius: 50%;
   }
 `;
 
