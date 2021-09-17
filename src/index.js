@@ -9,6 +9,7 @@ import { ThemeProvider } from "styled-components";
 import GlobalStyles from "styles/GlobalStyles";
 import Mixin from "styles/Mixin";
 import App from "App";
+import "antd/dist/antd.css";
 
 const store = createStore(
   rootReducer,
