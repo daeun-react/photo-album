@@ -9,7 +9,7 @@ import { ReactComponent as Add } from "assets/add.svg";
 import { ReactComponent as Logout } from "assets/logout.svg";
 
 function HeaderItem() {
-  const { LOGIN, SIGNUP } = ROUTES;
+  const { LOGIN, SIGNUP, MYPAGE, WRITE } = ROUTES;
 
   const _session_key = `firebase:authUser:${process.env.REACT_APP_API_KEY}:[DEFAULT]`;
   const is_session = sessionStorage.getItem(_session_key) ? true : false;
@@ -29,13 +29,13 @@ function HeaderItem() {
   if (is_session && is_login) {
     return (
       <HeaderItemWrapper login={true}>
-        <li onClick={() => historyChange("/wrmypageite")}>
+        <li onClick={() => historyChange(MYPAGE)}>
           <ProfileImage>{user && <img src={user.user_profile} alt="user profile" />}</ProfileImage>
         </li>
         <li>
           <Bell />
         </li>
-        <li onClick={() => historyChange("/write")}>
+        <li onClick={() => historyChange(WRITE)}>
           <Add />
         </li>
         <li onClick={handleLogout}>
