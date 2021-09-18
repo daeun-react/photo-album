@@ -3,7 +3,8 @@ import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { actionCreators as postActions } from "redux/modules/post";
 import PostInfo from "components/post/PostInfo";
-import { Text } from "components/common";
+import CommentWrite from "components/comment/CommentWrite";
+import { Permit, Text } from "components/common";
 
 function PostDetail(props) {
   const dispatch = useDispatch();
@@ -31,6 +32,9 @@ function PostDetail(props) {
       </Text>
       <PostDetailWrapper width="980px">
         {post && <PostInfo {...post} is_me={is_me} type="detail" />}
+        <Permit>
+          <CommentWrite post_id={id} />
+        </Permit>
       </PostDetailWrapper>
     </Wrapper>
   );
