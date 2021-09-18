@@ -3,6 +3,7 @@ import styled from "styled-components";
 import { history } from "redux/configureStore";
 import PostHeader from "components/post/PostHeader";
 import { StyledButton } from "components/common/Styled";
+import CommentList from "components/comment/CommentList";
 
 function PostInfo({ image_url, user_info, insert_dt, is_me, id, type }) {
   return (
@@ -16,7 +17,9 @@ function PostInfo({ image_url, user_info, insert_dt, is_me, id, type }) {
           is_me={is_me}
           id={id}
         />
-        <CommentWrapper></CommentWrapper>
+        <CommentWrapper>
+          <CommentList post_id={id} type="modal" />
+        </CommentWrapper>
 
         {type === "modal" && (
           <StyledButton
