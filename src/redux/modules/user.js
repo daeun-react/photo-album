@@ -7,13 +7,13 @@ import { auth } from "firebase";
 const LOGIN_SUCCESS = "LOGIN_SUCCESS";
 const LOGIN_ERROR = "LOGIN_ERROR";
 const LOG_OUT = "LOG_OUT";
-const SIGNUP_SUCCESS = "SIGNUP_SUCCESS";
+// const SIGNUP_SUCCESS = "SIGNUP_SUCCESS";
 const SIGNUP_ERROR = "SIGNUP_ERROR";
 
 const loginSuccess = createAction(LOGIN_SUCCESS, (user) => ({ user }));
 const loginError = createAction(LOGIN_ERROR);
 const logOut = createAction(LOG_OUT);
-const signupSuccess = createAction(SIGNUP_SUCCESS);
+// const signupSuccess = createAction(SIGNUP_SUCCESS);
 const signupError = createAction(SIGNUP_ERROR);
 
 const loginFB = (id, pwd, signup = false) => {
