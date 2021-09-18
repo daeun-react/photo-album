@@ -67,6 +67,7 @@ const FlexBox = styled.div`
 const UserImage = styled.img`
   width: 28px;
   height: 28px;
+  margin-right: 10px;
   padding: 2px;
   border-radius: 100%;
   border: 1px solid #333333;
