@@ -8,7 +8,7 @@ import { actionCreators as ImageActions } from "redux/modules/image";
 import { ROUTES } from "utils/constants";
 import Upload from "components/post/Upload";
 import { StyledButton } from "components/common/Styled";
-import { Text } from "components/common";
+import { Spinner, Text } from "components/common";
 
 function PostWrite(props) {
   const { LOGIN } = ROUTES;
@@ -86,7 +86,7 @@ function PostWrite(props) {
         {is_edit ? "게시글 수정" : "게시글 작성"}
       </Text>
 
-      <Spin spinning={is_uploading} size="large">
+      <Spin indicator={<Spinner />} spinning={is_uploading} size="large">
         <PostWriteWrapper width="768px">
           <Upload />
           <PreviewWrapper>
