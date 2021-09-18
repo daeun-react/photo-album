@@ -4,9 +4,18 @@ import { createAction, handleActions } from "redux-actions";
 import { actionCreators as imageActions } from "redux/modules/image";
 import { firestore, storage } from "firebase";
 
+const SHOW_POST = "SHOW_POST";
+const LOADING = "LOADING";
+
 const UPLOADING_POST = "UPLOADING_POST";
 const ADD_POST = "ADD_POST";
 const EDIT_POST = "EDIT_POST";
+
+const showPost = createAction(SHOW_POST, (post_list, paging) => ({
+  post_list,
+  paging,
+}));
+const loading = createAction(LOADING, (is_loading) => ({ is_loading }));
 
 const uploadingPost = createAction(UPLOADING_POST, (is_uploading) => ({ is_uploading }));
 const addPost = createAction(ADD_POST, (post) => ({ post }));
@@ -20,6 +29,95 @@ const initialPost = {
   contents: "",
   comment_cnt: 0,
   insert_dt: moment().format("YYYY-MM-DD HH:mm:ss"),
+};
+
+const getPostFB = (start = null, size = 9) => {
+  return function (dispatch, getState, { history }) {
+    const _paging = getState().post.paging;
+    if (_paging.start && !_paging.next) {
+      return;
+    }
+    dispatch(loading(true));
+
+    const postDB = firestore.collection("post");
+    let query = postDB.orderBy("insert_dt", "desc");
+
+    if (start) {
+      query = query.startAt(start);
+    }
+
+    query
+      .limit(size + 1)
+      .get()
+      .then((docs) => {
+        let post_list = [];
+
+        let paging = {
+          start: docs.docs[0],
+          next: docs.docs.length === size + 1 ? docs.docs[docs.docs.length - 1] : null,
+          size: size,
+        };
+
+        docs.forEach((doc) => {
+          let _post = doc.data();
+          const post = Object.keys(_post).reduce(
+            (acc, cur) => {
+              if (cur.indexOf("user_") > -1) {
+                return {
+                  ...acc,
+                  user_info: { ...acc.user_info, [cur]: _post[cur] },
+                };
+              } else {
+                return {
+                  ...acc,
+                  [cur]: _post[cur],
+                };
+              }
+            },
+            { id: doc.id, user_info: {} }
+          );
+          post_list.push(post);
+        });
+
+        if (paging.next !== null) {
+          post_list.pop();
+        }
+        dispatch(showPost(post_list, paging));
+      })
+      .catch((err) => {
+        window.alert("앗! 포스트 불러오기에 문제가 있어요!");
+      });
+  };
+};
+
+const getOnePostFB = (id) => {
+  return function (dispatch, getState, { history }) {
+    const postDB = firestore.collection("post");
+
+    postDB
+      .doc(id)
+      .get()
+      .then((doc) => {
+        const _post = doc.data();
+        const post = Object.keys(_post).reduce(
+          (acc, cur) => {
+            if (cur.indexOf("user_") > -1) {
+              return {
+                ...acc,
+                user_info: { ...acc.user_info, [cur]: _post[cur] },
+              };
+            }
+            return { ...acc, [cur]: _post[cur] };
+          },
+          {
+            id: doc.id,
+            user_info: {},
+          }
+        );
+
+        dispatch(showPost([post]));
+      });
+  };
 };
 
 const addPostFB = (contents = "") => {
@@ -136,6 +234,24 @@ const initialState = {
 
 export default handleActions(
   {
+    [SHOW_POST]: (state, action) =>
+      produce(state, (draft) => {
+        draft.list.push(...action.payload.post_list);
+        draft.list = draft.list.reduce((acc, cur) => {
+          if (acc.findIndex((a) => a.id === cur.id) === -1) {
+            return [...acc, cur];
+          } else {
+            acc[acc.findIndex((a) => a.id === cur.id)] = cur;
+            return acc;
+          }
+        }, []);
+
+        if (action.payload.paging) {
+          draft.paging = action.payload.paging;
+        }
+
+        draft.is_loading = false;
+      }),
     [UPLOADING_POST]: (state, action) =>
       produce(state, (draft) => {
         draft.is_uploading = action.payload.is_uploading;
@@ -154,6 +270,8 @@ export default handleActions(
 );
 
 const actionCreators = {
+  getPostFB,
+  getOnePostFB,
   addPostFB,
   editPostFB,
 };
