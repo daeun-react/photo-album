@@ -1,12 +1,20 @@
 import React from "react";
 import styled from "styled-components";
+import { ROUTES } from "utils/constants";
+import { history } from "redux/configureStore";
 import HeaderItem from "components/layout/HeaderItem";
 
 function Header() {
+  const { POSTLIST } = ROUTES;
+
+  const historyChange = (url) => {
+    history.push(url);
+  };
+
   return (
     <HeaderWrapper>
       <InnerWrapper>
-        <h1>PHOTO-ALBUM</h1>
+        <Title onClick={() => historyChange(POSTLIST)}>PHOTO-ALBUM</Title>
         <HeaderItem />
       </InnerWrapper>
     </HeaderWrapper>
@@ -29,8 +37,11 @@ const HeaderWrapper = styled.header`
 
 const InnerWrapper = styled.div`
   ${({ theme }) => theme.flexSet("space-between", "center")};
-  width: 100%;
+  width: 980px;
   height: 100%;
-  max-width: 980px;
   margin: 0 auto;
+`;
+
+const Title = styled.h1`
+  cursor: pointer;
 `;

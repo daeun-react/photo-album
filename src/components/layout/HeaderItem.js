@@ -66,6 +66,10 @@ export default HeaderItem;
 const HeaderItemWrapper = styled.ul`
   ${({ theme }) => theme.flexSet()};
 
+  li {
+    cursor: pointer;
+  }
+
   li + li {
     padding-left: 16px;
   }
