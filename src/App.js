@@ -5,6 +5,7 @@ import { history } from "redux/configureStore";
 import { actionCreators as userActions } from "redux/modules/user";
 import Header from "components/layout/Header";
 import Footer from "components/layout/Footer";
+import Notification from "components/notification/Notification";
 
 function App() {
   const dispatch = useDispatch();
@@ -23,7 +24,10 @@ function App() {
   return (
     <>
       <Header />
-      <Routes />
+      <>
+        <Routes />
+        <Notification />
+      </>
       <Footer />
     </>
   );
