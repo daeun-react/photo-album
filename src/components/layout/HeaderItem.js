@@ -1,16 +1,19 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styled, { css } from "styled-components";
+import { Badge } from "antd";
 import { useSelector, useDispatch } from "react-redux";
 import { actionCreators as userActions } from "redux/modules/user";
+import { actionCreators as drawerActions } from "redux/modules/drawer";
 import { history } from "redux/configureStore";
 import { ROUTES } from "utils/constants";
 import { ReactComponent as Bell } from "assets/bell.svg";
 import { ReactComponent as Add } from "assets/add.svg";
 import { ReactComponent as Logout } from "assets/logout.svg";
+import { realtime } from "firebase";
 
 function HeaderItem() {
+  const [notiCount, setNotiCount] = useState(0);
   const { LOGIN, SIGNUP, MYPAGE, WRITE } = ROUTES;
-
   const _session_key = `firebase:authUser:${process.env.REACT_APP_API_KEY}:[DEFAULT]`;
   const is_session = sessionStorage.getItem(_session_key) ? true : false;
 
@@ -26,6 +29,27 @@ function HeaderItem() {
     window.confirm("정말 로그아웃 하시겠습니까?") && dispatch(userActions.logoutFB());
   };
 
+  const toggleDrawer = () => {
+    dispatch(drawerActions.toggleDrawer());
+  };
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+    const notiDB = realtime.ref(`noti/${user.uid}/list`);
+    notiDB.on("value", (snapshot) => {
+      if (snapshot.exists()) {
+        const _data = snapshot.val();
+        const _noti_list = Object.keys(_data).map((s) => {
+          return _data[s];
+        });
+        const newNoti = _noti_list.filter((item) => item.read === false).length;
+        setNotiCount(newNoti);
+      }
+    });
+  }, [user]);
+
   if (is_session && is_login) {
     return (
       <HeaderItemWrapper login={true}>
@@ -33,7 +57,9 @@ function HeaderItem() {
           <ProfileImage>{user && <img src={user.user_profile} alt="user profile" />}</ProfileImage>
         </li>
         <li>
-          <Bell />
+          <Badge size="small" count={notiCount} offset={[-4, 4]}>
+            <Bell onClick={toggleDrawer} />
+          </Badge>
         </li>
         <li onClick={() => historyChange(WRITE)}>
           <Add />
