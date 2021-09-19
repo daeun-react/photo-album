@@ -87,23 +87,17 @@ const addCommentFB = (post_id, contents) => {
             );
 
             if (post.user_info.user_id !== user_info.uid) {
-              const _noti_item = realtime.ref(`noti/${post.user_info.user_id}/list/${post.id}`);
-              _noti_item.set(
-                {
-                  post_id: post.id,
-                  user_name: comment.user_name,
-                  image_url: post.image_url,
-                  insert_dt: comment.insert_dt,
-                  read: false,
-                },
-                (err) => {
-                  if (err) {
-                  } else {
-                    const notiDB = realtime.ref(`noti/${post.user_info.user_id}`);
-                    notiDB.update({ read: false });
-                  }
-                }
+              const _noti_item = realtime.ref(
+                `noti/${post.user_info.user_id}/list/${post.id}_${user_info.uid}`
               );
+              _noti_item.set({
+                post_id: post.id,
+                writer_name: comment.user_name,
+                writer_id: comment.user_id,
+                image_url: post.image_url,
+                insert_dt: comment.insert_dt,
+                read: false,
+              });
             }
           }
         });

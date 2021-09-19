@@ -5,12 +5,12 @@ import { history } from "redux/configureStore";
 import { ROUTES } from "utils/constants";
 import { realtime } from "firebase";
 
-function NotiCard({ post_id, image_url, user_name }) {
+function NotiCard({ post_id, image_url, writer_name, writer_id }) {
   const { POST } = ROUTES;
   const user_id = useSelector((state) => state.user.user?.uid);
 
   const handleNotiClick = () => {
-    const notiDB = realtime.ref(`noti/${user_id}/list/${post_id}`);
+    const notiDB = realtime.ref(`noti/${user_id}/list/${post_id}_${writer_id}`);
     notiDB.update({ read: true });
     history.push(`${POST}/${post_id}`);
   };
@@ -19,7 +19,7 @@ function NotiCard({ post_id, image_url, user_name }) {
     <Wrapper onClick={handleNotiClick}>
       <PostImage src={image_url} alt="" />
       <NotiText>
-        <b>{user_name}</b>님이 게시글에 댓글을 남겼습니다! :)
+        <b>{writer_name}</b>님이 게시글에 댓글을 남겼습니다! :)
       </NotiText>
     </Wrapper>
   );

@@ -23,14 +23,15 @@ function Notification() {
     const notiDB = realtime.ref(`noti/${user.uid}/list`);
     const _noti = notiDB.orderByChild("insert_dt");
 
-    _noti.once("value", (snapshot) => {
+    _noti.on("value", (snapshot) => {
       if (snapshot.exists()) {
         let _data = snapshot.val();
         let _noti_list = Object.keys(_data)
           .reverse()
           .map((s) => {
             return _data[s];
-          });
+          })
+          .filter((item) => item.read === false);
         setNoti(_noti_list);
       } else {
         setNoti([]);
@@ -46,8 +47,8 @@ function Notification() {
         onClose={toggleDrawer}
         width={700}
         visible={visible}>
-        {noti.map((n) => {
-          return <NotiCard key={n.post_id} {...n} />;
+        {noti.map((n, idx) => {
+          return <NotiCard key={idx} {...n} />;
         })}
       </Drawer>
     </>
