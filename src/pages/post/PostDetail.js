@@ -16,7 +16,7 @@ function PostDetail(props) {
   const post_idx = post_list.findIndex((p) => p.id === id);
   const post = post_list[post_idx];
 
-  const is_me = post.user_info.user_id === user_info?.uid;
+  const is_me = post?.user_info?.user_id === user_info?.uid;
 
   useEffect(() => {
     if (post) {
@@ -43,7 +43,7 @@ function PostDetail(props) {
 export default PostDetail;
 
 const Wrapper = styled.div`
-  ${({ theme }) => theme.flexSet("flex-start", "center", "column")};
+  ${({ theme }) => theme.flexSet("center", "center", "column")};
   width: 100%;
   min-height: calc(100vh - 64px - 80px);
   background-color: #fafafa;
