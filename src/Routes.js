@@ -11,7 +11,7 @@ import PostDetail from "pages/post/PostDetail";
 import { ROUTES } from "utils/constants";
 
 function Routes() {
-  const { POSTLIST, LOGIN, SIGNUP, MYPAGE, WRITE, WRITEBYID, POSTBYID, NOTIFICATION } = ROUTES;
+  const { POSTLIST, LOGIN, SIGNUP, MYPAGE, WRITE, WRITEBYID, POSTBYID } = ROUTES;
 
   return (
     <ConnectedRouter history={history}>
@@ -22,7 +22,6 @@ function Routes() {
       <Route path={WRITE} exact component={PostWrite} />
       <Route path={WRITEBYID} exact component={PostWrite} />
       <Route path={POSTBYID} exact component={PostDetail} />
-      <Route path={NOTIFICATION} exact component={Notification} />
     </ConnectedRouter>
   );
 }
