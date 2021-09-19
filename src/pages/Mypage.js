@@ -147,7 +147,7 @@ const UserInfo = styled.div`
 `;
 
 const PostSection = styled.div`
-  ${({ theme }) => theme.flexSet()};
+  ${({ theme }) => theme.flexSet("center", "center", "column")};
   min-height: 300px;
 `;
 
