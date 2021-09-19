@@ -7,12 +7,12 @@ import image from "redux/modules/image";
 import comment from "redux/modules/comment";
 import drawer from "redux/modules/drawer";
 import modal from "redux/modules/modal";
-import storage from "redux-persist/lib/storage/session";
 import { persistReducer } from "redux-persist";
+import localforage from "localforage";
 
 const persistConfig = {
   key: "root",
-  storage,
+  storage: localforage,
   whitelist: ["user", "post", "image", "comment"],
   blacklist: ["drawer", "modal", "router"],
 };
