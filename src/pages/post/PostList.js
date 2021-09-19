@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import styled from "styled-components";
 import { useSelector, useDispatch } from "react-redux";
 import { actionCreators as postActions } from "redux/modules/post";
+import { actionCreators as modalActions } from "redux/modules/modal";
 import Post from "components/post/Post";
-import Blackout from "components/modal/Blackout";
-import Modal from "components/modal/Modal";
 import InfinityScroll from "components/common/InfinityScroll";
 
 function PostList() {
@@ -12,11 +11,8 @@ function PostList() {
   const { list: post_list, paging, is_loading } = useSelector((state) => state.post);
   const user_info = useSelector((state) => state.user.user);
 
-  const [isVisible, setIsVisible] = useState(false);
-  const [showPost, setShowPost] = useState(null);
-
-  const onSetIsVisible = (active) => {
-    setIsVisible(active);
+  const handleModalOpen = (data) => {
+    dispatch(modalActions.openModal("Post", data));
   };
 
   useEffect(() => {
@@ -24,14 +20,6 @@ function PostList() {
       dispatch(postActions.getPostFB());
     }
   }, [dispatch, post_list.length]);
-
-  useEffect(() => {
-    if (isVisible) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-  }, [isVisible]);
 
   return (
     <Wrapper>
@@ -48,18 +36,13 @@ function PostList() {
                 <Post
                   {...p}
                   is_me={p.user_info.user_id === user_info?.uid}
-                  _onClick={() => {
-                    onSetIsVisible(true);
-                    setShowPost({ ...p });
-                  }}
+                  _onClick={() => handleModalOpen(p)}
                 />
               </li>
             );
           })}
         </PostListWrapper>
       </InfinityScroll>
-      <Blackout isVisible={isVisible} onSetIsVisible={onSetIsVisible} />
-      {showPost && <Modal isVisible={isVisible} onSetIsVisible={onSetIsVisible} Post={showPost} />}
     </Wrapper>
   );
 }
