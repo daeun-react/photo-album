@@ -5,6 +5,7 @@ export const ROUTES = {
   MYPAGE: "/mypage",
   WRITE: "/write",
   WRITEBYID: "/write/:id",
+  POST: "/post",
   POSTBYID: "/post/:id",
   NOTIFICATION: "/noti",
 };
