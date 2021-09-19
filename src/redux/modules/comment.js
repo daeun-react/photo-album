@@ -3,12 +3,14 @@ import produce from "immer";
 import moment from "moment";
 import { createAction, handleActions } from "redux-actions";
 import { actionCreators as postActions } from "redux/modules/post";
-import { firestore } from "firebase";
+import { firestore, realtime } from "firebase";
 
-const GET_COMMENT = "GET_COMMENT";
-const ADD_COMMENT = "ADD_COMMENT";
-const LOADING = "LOADING";
+const RESET = "comment/RESET";
+const GET_COMMENT = "comment/GET_COMMENT";
+const ADD_COMMENT = "comment/ADD_COMMENT";
+const LOADING = "comment/LOADING";
 
+const reset = createAction(RESET);
 const getComment = createAction(GET_COMMENT, (post_id, comment_list) => ({
   post_id,
   comment_list,
@@ -43,7 +45,6 @@ const getCommentFB = (post_id = null) => {
         dispatch(getComment(post_id, list));
       })
       .catch((err) => {
-        console.log(err);
         window.alert("앗! 댓글 불러오기에 문제가 있어요!");
       });
   };
@@ -84,6 +85,26 @@ const addCommentFB = (post_id, contents) => {
                 comment_cnt: parseInt(post.comment_cnt) + 1,
               })
             );
+
+            if (post.user_info.user_id !== user_info.uid) {
+              const _noti_item = realtime.ref(`noti/${post.user_info.user_id}/list/${post.id}`);
+              _noti_item.set(
+                {
+                  post_id: post.id,
+                  user_name: comment.user_name,
+                  image_url: post.image_url,
+                  insert_dt: comment.insert_dt,
+                  read: false,
+                },
+                (err) => {
+                  if (err) {
+                  } else {
+                    const notiDB = realtime.ref(`noti/${post.user_info.user_id}`);
+                    notiDB.update({ read: false });
+                  }
+                }
+              );
+            }
           }
         });
     });
@@ -97,6 +118,7 @@ const initialState = {
 
 export default handleActions(
   {
+    [RESET]: (state, action) => (state = initialState),
     [GET_COMMENT]: (state, action) =>
       produce(state, (draft) => {
         draft.list[action.payload.post_id] = action.payload.comment_list;
@@ -117,6 +139,7 @@ export default handleActions(
 const actionCreators = {
   getCommentFB,
   addCommentFB,
+  reset,
 };
 
 export { actionCreators };
