@@ -1,20 +1,23 @@
 import { createAction, handleActions } from "redux-actions";
 import { produce } from "immer";
 import gravatar from "gravatar";
+import { actionCreators as postActions } from "redux/modules/post";
+import { actionCreators as commentActions } from "redux/modules/comment";
+import { actionCreators as imageActions } from "redux/modules/image";
 import firebase from "firebase/compat/app";
-import { auth } from "firebase";
+import { auth, firestore, realtime, storage } from "firebase";
 
-const LOGIN_SUCCESS = "LOGIN_SUCCESS";
-const LOGIN_ERROR = "LOGIN_ERROR";
-const LOG_OUT = "LOG_OUT";
-// const SIGNUP_SUCCESS = "SIGNUP_SUCCESS";
-const SIGNUP_ERROR = "SIGNUP_ERROR";
+const LOGIN_SUCCESS = "user/LOGIN_SUCCESS";
+const LOGIN_ERROR = "user/LOGIN_ERROR";
+const LOG_OUT = "user/LOG_OUT";
+const SIGNUP_ERROR = "user/SIGNUP_ERROR";
+const UPLOADING_PROFILE = "user/UPLOADING_PROFILE";
 
 const loginSuccess = createAction(LOGIN_SUCCESS, (user) => ({ user }));
 const loginError = createAction(LOGIN_ERROR);
 const logOut = createAction(LOG_OUT);
-// const signupSuccess = createAction(SIGNUP_SUCCESS);
 const signupError = createAction(SIGNUP_ERROR);
+const uploadingProfile = createAction(UPLOADING_PROFILE, (is_uploading) => ({ is_uploading }));
 
 const loginFB = (id, pwd, signup = false) => {
   return function (dispatch, getState, { history }) {
@@ -43,6 +46,10 @@ const logoutFB = () => {
   return function (dispatch, getState, { history }) {
     auth.signOut().then(() => {
       dispatch(logOut());
+      dispatch(postActions.reset());
+      dispatch(commentActions.reset());
+      dispatch(imageActions.reset());
+
       history.replace("/login");
     });
   };
@@ -79,6 +86,7 @@ export const signupFB = (id, pwd, user_name) => {
           })
           .then(() => {
             dispatch(loginFB(id, pwd, true));
+            realtime.ref(`noti/${user.user.uid}`).set({ created: true });
           })
           .catch((err) => console.log(err));
       })
@@ -90,11 +98,69 @@ export const signupFB = (id, pwd, user_name) => {
   };
 };
 
+export const updateProfileFB = (imageStr) => {
+  return function (dispatch, getState, { history }) {
+    const _user = getState().user.user;
+
+    const _upload = storage
+      .ref(`images/profile/${_user.user_id}_${new Date().getTime()}`)
+      .putString(imageStr, "data_url");
+
+    dispatch(uploadingProfile(true));
+
+    _upload.then((snapshot) => {
+      snapshot.ref
+        .getDownloadURL()
+        .then((url) => {
+          return url;
+        })
+        .then((url) => {
+          auth.currentUser
+            .updateProfile({
+              photoURL: url,
+            })
+            .then(() => {
+              dispatch(
+                loginSuccess({
+                  user_name: _user.user_name,
+                  id: _user.id,
+                  user_profile: url,
+                  uid: _user.uid,
+                })
+              );
+
+              const postDB = firestore.collection("post");
+              postDB
+                .where("user_id", "==", _user.uid)
+                .get()
+                .then((docs) => {
+                  docs.forEach((doc) => {
+                    postDB.doc(doc.id).update({ user_profile: url });
+                  });
+                  dispatch(postActions.getPostByIdFB(_user.uid));
+                })
+                .catch((err) => {
+                  window.alert("앗! 프로필 이미지 수정에 문제가 있어요!");
+                });
+            })
+            .catch((error) => {
+              window.alert("앗! 프로필 이미지 수정에 문제가 있어요!");
+            });
+        })
+        .catch((err) => {
+          window.alert("앗! 이미지 업로드에 문제가 있어요!");
+        })
+        .finally(() => dispatch(uploadingProfile(false)));
+    });
+  };
+};
+
 const initialState = {
   user: null,
   is_login: false,
   login_error: false,
   signup_error: false,
+  uploading_proflie: false,
 };
 
 export default handleActions(
@@ -119,6 +185,10 @@ export default handleActions(
       produce(state, (draft) => {
         draft.signup_error = true;
       }),
+    [UPLOADING_PROFILE]: (state, action) =>
+      produce(state, (draft) => {
+        draft.uploading_proflie = action.payload.is_uploading;
+      }),
   },
   initialState
 );
@@ -128,6 +198,7 @@ const actionCreators = {
   logoutFB,
   loginCheckFB,
   signupFB,
+  updateProfileFB,
 };
 
 export { actionCreators };
