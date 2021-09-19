@@ -4,15 +4,22 @@ import { createAction, handleActions } from "redux-actions";
 import { actionCreators as imageActions } from "redux/modules/image";
 import { firestore, storage } from "firebase";
 
-const SHOW_POST = "SHOW_POST";
-const LOADING = "LOADING";
+const RESET = "post/RESET";
+const SHOW_POST = "post/SHOW_POST";
+const SHOW_MY_POST = "post/SHOW_MY_POST";
+const LOADING = "post/LOADING";
+const UPLOADING_POST = "post/UPLOADING_POST";
+const ADD_POST = "post/ADD_POST";
+const EDIT_POST = "post/EDIT_POST";
+const CHANGE_POST_PROFILE = "post/CHANGE_POST_PROFILE";
 
-const UPLOADING_POST = "UPLOADING_POST";
-const ADD_POST = "ADD_POST";
-const EDIT_POST = "EDIT_POST";
-
+const reset = createAction(RESET);
 const showPost = createAction(SHOW_POST, (post_list, paging) => ({
   post_list,
+  paging,
+}));
+const showMyPost = createAction(SHOW_MY_POST, (my_post_list, paging) => ({
+  my_post_list,
   paging,
 }));
 const loading = createAction(LOADING, (is_loading) => ({ is_loading }));
@@ -22,6 +29,11 @@ const addPost = createAction(ADD_POST, (post) => ({ post }));
 const editPost = createAction(EDIT_POST, (post_id, post) => ({
   post_id,
   post,
+}));
+
+const changePostProfile = createAction(CHANGE_POST_PROFILE, (uid, url) => ({
+  uid,
+  url,
 }));
 
 const initialPost = {
@@ -215,11 +227,63 @@ const editPostFB = (post_id = null, post = {}) => {
             })
             .catch((err) => {
               window.alert("앗! 포스트 수정에 문제가 있어요!");
-              console.log("앗! 포스트 수정에 문제가 있어요!", err);
             });
         })
         .finally(() => dispatch(uploadingPost(false)));
     }
+  };
+};
+
+const getPostByIdFB = (uid, start = null, size = 6) => {
+  return function (dispatch, getState, { history }) {
+    const postDB = firestore.collection("post");
+    dispatch(loading());
+
+    let query = postDB.where("user_id", "==", uid).orderBy("insert_dt", "desc");
+
+    if (start) {
+      query = query.startAt(start);
+    }
+
+    query
+      .limit(size + 1)
+      .get()
+      .then((docs) => {
+        const my_post_list = [];
+
+        let paging = {
+          start: docs.docs[0],
+          next: docs.docs.length === size + 1 ? docs.docs[docs.docs.length - 1] : null,
+          size: size,
+        };
+
+        docs.forEach((doc) => {
+          let _post = doc.data();
+          const post = Object.keys(_post).reduce(
+            (acc, cur) => {
+              if (cur.indexOf("user_") > -1) {
+                return {
+                  ...acc,
+                  user_info: { ...acc.user_info, [cur]: _post[cur] },
+                };
+              } else {
+                return {
+                  ...acc,
+                  [cur]: _post[cur],
+                };
+              }
+            },
+            { id: doc.id, user_info: {} }
+          );
+          my_post_list.push(post);
+        });
+
+        if (paging.next !== null) {
+          my_post_list.pop();
+        }
+
+        dispatch(showMyPost(my_post_list, paging));
+      });
   };
 };
 
@@ -234,6 +298,7 @@ const initialState = {
 
 export default handleActions(
   {
+    [RESET]: (state, action) => (state = initialState),
     [SHOW_POST]: (state, action) =>
       produce(state, (draft) => {
         draft.list.push(...action.payload.post_list);
@@ -252,6 +317,26 @@ export default handleActions(
 
         draft.is_loading = false;
       }),
+    [SHOW_MY_POST]: (state, action) =>
+      produce(state, (draft) => {
+        draft.my_post_list.push(...action.payload.my_post_list);
+
+        draft.my_post_list = draft.my_post_list.reduce((acc, cur) => {
+          if (acc.findIndex((a) => a.id === cur.id) === -1) {
+            return [...acc, cur];
+          } else {
+            acc[acc.findIndex((a) => a.id === cur.id)] = cur;
+            return acc;
+          }
+        }, []);
+
+        if (action.payload.paging) {
+          draft.mypage_paging = action.payload.paging;
+        }
+
+        draft.is_loading = false;
+      }),
+
     [UPLOADING_POST]: (state, action) =>
       produce(state, (draft) => {
         draft.is_uploading = action.payload.is_uploading;
@@ -265,16 +350,33 @@ export default handleActions(
         let idx = draft.list.findIndex((p) => p.id === action.payload.post_id);
         draft.list[idx] = { ...draft.list[idx], ...action.payload.post };
       }),
+    [CHANGE_POST_PROFILE]: (state, action) =>
+      produce(state, (draft) => {
+        draft.my_post_list = draft.my_post_list.map((list) =>
+          list.user_info.user_id === action.payload.uid
+            ? {
+                ...list,
+                user_info: {
+                  ...list.user_info,
+                  user_profile: action.payload.url,
+                },
+              }
+            : list
+        );
+      }),
   },
   initialState
 );
 
 const actionCreators = {
+  reset,
   getPostFB,
   getOnePostFB,
   addPostFB,
   editPostFB,
   editPost,
+  getPostByIdFB,
+  changePostProfile,
 };
 
 export { actionCreators };
