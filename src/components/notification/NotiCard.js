@@ -1,18 +1,21 @@
 import React from "react";
 import styled from "styled-components";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { history } from "redux/configureStore";
+import { actionCreators as drawerActions } from "redux/modules/drawer";
 import { ROUTES } from "utils/constants";
 import { realtime } from "firebase";
 
 function NotiCard({ post_id, image_url, writer_name, writer_id }) {
   const { POST } = ROUTES;
+  const dispatch = useDispatch();
   const user_id = useSelector((state) => state.user.user?.uid);
 
   const handleNotiClick = () => {
     const notiDB = realtime.ref(`noti/${user_id}/list/${post_id}_${writer_id}`);
     notiDB.update({ read: true });
     history.push(`${POST}/${post_id}`);
+    dispatch(drawerActions.toggleDrawer());
   };
 
   return (
