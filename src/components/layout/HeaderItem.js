@@ -46,6 +46,8 @@ function HeaderItem() {
         });
         const newNoti = _noti_list.filter((item) => item.read === false).length;
         setNotiCount(newNoti);
+      } else {
+        setNotiCount(0);
       }
     });
   }, [user]);
@@ -97,7 +99,7 @@ const HeaderItemWrapper = styled.ul`
   }
 
   li + li {
-    padding-left: 16px;
+    padding-left: 20px;
   }
 
   svg {
