@@ -10,7 +10,8 @@
 
 ## 시연 영상
 
-![시연 영상]()
+![시연 영상](https://user-images.githubusercontent.com/67173064/134769698-bb36a7a4-a3ba-43b8-bfb1-589d13d0d999.gif)
+
 
 ## 요구 사항 및 구현 기능
 
