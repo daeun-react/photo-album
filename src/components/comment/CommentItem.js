@@ -10,7 +10,7 @@ function CommentItem({ user_name, user_profile, contents, insert_dt, type }) {
       <CommentItemWrapper>
         <Text bold>{user_name}</Text>
         <CommentText>{contents}</CommentText>
-        <Text color="#8C8C8C">{moment(insert_dt).startOf("day").fromNow()}</Text>
+        <Text color="#8C8C8C">{moment(insert_dt).fromNow()}</Text>
       </CommentItemWrapper>
     </Wrapper>
   );
