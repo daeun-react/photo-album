@@ -44,7 +44,9 @@ function HeaderItem() {
         const _noti_list = Object.keys(_data).map((s) => {
           return _data[s];
         });
-        const newNoti = _noti_list.filter((item) => item.read === false).length;
+        const newNoti = _noti_list.filter(
+          (item) => item.read === false && item.writer_id !== user.uid
+        ).length;
         setNotiCount(newNoti);
       } else {
         setNotiCount(0);
